@@ -1,0 +1,15 @@
+.playground {
+  width: 500px;
+  height: 500px;
+  background-color: lightgrey;
+  margin: 10px;
+}
+
+.cat {
+  width: 12px;
+  height: 12px;
+  background-color: red;
+  position: absolute;
+  left: 260px;
+  top: 260px;
+}
