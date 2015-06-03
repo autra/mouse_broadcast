@@ -43,12 +43,16 @@ io.sockets.on('connection', function (socket){
 		}
 	});
 
-    // TODO fix : decrease the number only if socket.id is in the room
-    //socket.on('bye', function(room) {
-      //log('%s has said bye to %s', socket.id, room);
-      //var newNb = numberClients[room] - 1;
-      //numberClients[room] = newNb >=0 ? newNb : 0;
-    //});
+    socket.on('bye', function(room, myId) {
+      log('%s has said bye to %s', socket.id, room);
+      // we check that the socket is really in this room.
+      if (socket.rooms.indexOf(room) !== -1) {
+        var newNb = numberClients[room] - 1;
+        numberClients[room] = newNb >=0 ? newNb : 0;
+        socket.broadcast.to(room).emit('left', socket.id);
+        socket.disconnect();
+      }
+    });
 
     socket.on('iceCandidate', function(clientId, candidate) {
       console.log('icecandidate to', clientId);

@@ -48,6 +48,13 @@ var myId;
 
   });
 
+  socket.on('left', function(clientId) {
+    // clean this client
+    console.log('Client %s has left us!', clientId);
+    delete dataChannels[clientId];
+    delete peers[clientId];
+  });
+
   socket.on('log', function (array){
     console.log.apply(console, array);
   });
@@ -145,6 +152,11 @@ var myId;
   function failed(error) {
     console.log("Failure callback: ", error);
   }
+
+  window.onbeforeunload = function(e){
+    console.log('onbeforeunload');
+    socket.emit('bye', room);
+  }
 })();
 
 function startPlayground() {
@@ -206,7 +218,3 @@ function startPlayground() {
 
 }
 
-window.onbeforeunload = function(e){
-  console.log('onbeforeunload');
-	socket.emit('bye', room);
-}
