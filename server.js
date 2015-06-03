@@ -38,8 +38,9 @@ io.sockets.on('connection', function (socket){
 
 		} else if (numClients === 1) {
 			socket.join(room);
-            socket.emit('joined', room, socket.id);
-            io.sockets.in(room).emit('ready');
+            //socket.emit('joined', room, socket.id);
+            console.log('clientid: ', socket.id);
+            socket.broadcast.to(room).emit('joined', room, socket.id);
             numberClients[room] = numberClients[room] + 1;
 
 		} else { // max two clients
@@ -47,22 +48,32 @@ io.sockets.on('connection', function (socket){
 		}
 	});
 
-    socket.on('ipaddr', function () {
-        var ifaces = os.networkInterfaces();
-        for (var dev in ifaces) {
-            ifaces[dev].forEach(function (details) {
-                if (details.family=='IPv4' && details.address != '127.0.0.1') {
-                    socket.emit('ipaddr', details.address);
-                }
-          });
-        }
+    // TODO fix : decrease the number only if socket.id is in the room
+    //socket.on('bye', function(room) {
+      //log('%s has said bye to %s', socket.id, room);
+      //var newNb = numberClients[room] - 1;
+      //numberClients[room] = newNb >=0 ? newNb : 0;
+    //});
+
+    socket.on('iceCandidate', function(clientId, candidate) {
+      console.log('icecandidate to', clientId);
+      socket.to(clientId).emit('iceCandidate', candidate, socket.id);
+    })
+
+    socket.on('offer', function(clientId, offer) {
+      console.log('offer to', clientId);
+      // emit offer to newly connected client
+      socket.to(clientId).emit('offer', offer, socket.id);
     });
 
-    socket.on('bye', function(room) {
-      numberClients[room] = numberClients[room] - 1;
-
+    socket.on('answer', function(clientId, sessionDesc) {
+      console.log('answer to', clientId);
+      socket.to(clientId).emit('answer', sessionDesc, socket.id);
     });
 
+    socket.on('error', function(err) {
+      log(err);
+    });
 });
 
 
