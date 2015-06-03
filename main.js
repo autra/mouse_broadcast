@@ -70,24 +70,28 @@ var myId;
     };
     peers[peerId] = pc;
     pc.ondatachannel = function(event) {
-        var mychannel = event.channel;
-        // In case pc2 opens a channel
-        console.log("pc2 onDataChannel  = " + mychannel +
-            ", stream=" + mychannel.stream + " id=" + mychannel.id +
-            ", ordered=" + mychannel.ordered +
-            ", label='" + mychannel.label + "'" +
-            ", protocol='" + mychannel.protocol + "'");
-        mychannel.onmessage = onmessage;
+      var mychannel = event.channel;
+      // In case peers opens a channel
+      console.log("%s onDataChannel  = %s, stream=%s id=%s, ordered=%s, label='%s', protocol='%s'",
+                  myId,
+                  mychannel,
+                  mychannel.stream,
+                  mychannel.id,
+                  mychannel.ordered,
+                  mychannel.label,
+                  mychannel.protocol);
+      mychannel.onmessage = getOnmessage(peerId);
 
-        mychannel.onopen = function() {
-          console.log("pc2 onopen fired for " + mychannel);
-          mychannel.send("Hello out there...");
-        }
-        mychannel.onclose = function() {
-          console.log("dc2 onclose fired");
-        };
-        dataChannels[peerId] = mychannel;
+      mychannel.onopen = function() {
+        console.log("onopen fired for %s by %s", mychannel, peerId);
+        mychannel.send("Hello out there...");
+      }
+      mychannel.onclose = function() {
+        console.log("onclose fired");
       };
+      dataChannels[peerId] = mychannel;
+    };
+
     pc.setRemoteDescription(new RTCSessionDescription(offer));
     pc.didSetRemote = true;
     pc.createAnswer(function(sessionDescription) {
@@ -109,12 +113,15 @@ var myId;
     pc.addIceCandidate(new RTCIceCandidate(candidate));
   });
 
-  function onmessage(evt) {
-    if (evt.data instanceof Blob) {
-      console.log("*** pc sent Blob: " + evt.data + ", length=" + evt.data.size);
-    } else {
-      console.log('pc said: ' + evt.data);
-    }
+  function getOnmessage(peerId) {
+    return function(evt) {
+      if (evt.data instanceof Blob) {
+        console.log("*** %s sent Blob: %s, length=%s",
+                    peerId, evt.data, evt.data.size);
+      } else {
+        console.log('%s said: %s', peerId, evt.data);
+      }
+    };
   }
 
   function connectToPeer(clientId) {
@@ -124,22 +131,22 @@ var myId;
 
     pc.onicecandidate = function(obj) {
       if (obj.candidate) {
-        console.log("pc found ICE candidate: " + JSON.stringify(obj.candidate));
+        console.log("found ICE candidate: " + JSON.stringify(obj.candidate));
         socket.emit('iceCandidate', clientId, obj.candidate);
       } else {
-        console.log("pc got end-of-candidates signal");
+        console.log("got end-of-candidates signal");
       }
-    }
+    };
 
-    var dc = pc.createDataChannel("This is pc", {});
+    var dc = pc.createDataChannel(clientId, {});
     dataChannels[clientId] = dc;
     dc.binaryType = "blob";
-    console.log("pc label " + dc.label +
+    console.log("dc label " + dc.label +
         ", stream=" + dc.stream + " id=" + dc.id);
-    dc.onmessage = onmessage;
+    dc.onmessage = getOnmessage(clientId);
     dc.onopen = function() {
-      console.log("pc onopen fired for " + dc);
-      dc.send("pc says this will likely be queued...");
+      console.log("onopen fired for %s", clientId);
+      dc.send("Welcome!");
     }
     dc.onclose = function() {
       console.log("dc onclose fired");
