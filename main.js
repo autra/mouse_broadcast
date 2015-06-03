@@ -84,7 +84,7 @@ var myId;
 
       mychannel.onopen = function() {
         console.log("onopen fired for %s by %s", mychannel, peerId);
-        mychannel.send("Hello out there...");
+        mychannel.send(JSON.stringify({type: "message", message: "Hello out there..."}));
       }
       mychannel.onclose = function() {
         console.log("onclose fired");
@@ -118,7 +118,12 @@ var myId;
         console.log("*** %s sent Blob: %s, length=%s",
                     peerId, evt.data, evt.data.size);
       } else {
-        console.log('%s said: %s', peerId, evt.data);
+        var data = JSON.parse(evt.data);
+        if (data.type === 'coordinate') {
+          console.log('Got coordinate %s, %s from %s', data.x, data.y, peerId);
+        } else {
+          console.log('%s said: %s', peerId, data.message);
+        }
       }
     };
   }
@@ -145,7 +150,7 @@ var myId;
     dc.onmessage = getOnmessage(clientId);
     dc.onopen = function() {
       console.log("onopen fired for %s", clientId);
-      dc.send("Welcome!");
+      dc.send(JSON.stringify({type: "message", message: "Welcome!"}));
     }
     dc.onclose = function() {
       console.log("dc onclose fired");
@@ -210,14 +215,27 @@ function startPlayground() {
   }
 
 
-  playground.addEventListener('mousemove', (e) => {
+  playground.addEventListener('mousemove', function(e) {
     if (e.clientX && e.clientY) {
       mouseX = e.clientX - playgroundX;
       mouseY = e.clientY - playgroundY;
+      broadcastNewCoordinate(mouseX, mouseY);
       myRect = new Rect('#FF0000', mouseX, mouseY);
       refresh();
     }
   });
+
+  function broadcastNewCoordinate(posX, posY) {
+    for (var peers in dataChannels) {
+      if (dataChannels.hasOwnProperty(peers)) {
+        dataChannels[peers].send(JSON.stringify({
+          type: 'coordinate',
+          x: posX,
+          y: posY
+        }));
+      }
+    }
+  }
 
 
 }
