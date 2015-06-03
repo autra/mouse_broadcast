@@ -16,11 +16,6 @@ var io = socketIO.listen(app);
 io.sockets.on('connection', function (socket){
 
 
-	socket.on('message', function (message, room) {
-		log('Client said:',  message);
-		socket.in(room).emit('message', message); // should be room only
-	});
-
 	socket.on('create or join', function (room) {
         log('Request to create or join room ' + room);
 
@@ -38,9 +33,9 @@ io.sockets.on('connection', function (socket){
 
 		} else if (numClients === 1) {
 			socket.join(room);
-            //socket.emit('joined', room, socket.id);
+            socket.emit('joined', room, socket.id);
             console.log('clientid: ', socket.id);
-            socket.broadcast.to(room).emit('joined', room, socket.id);
+            socket.broadcast.to(room).emit('join', room, socket.id);
             numberClients[room] = numberClients[room] + 1;
 
 		} else { // max two clients
