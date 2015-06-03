@@ -84,10 +84,12 @@ socket.on('log', function (array){
 
 
   playground.addEventListener('mousemove', (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    myRect = new Rect('#FF0000', mouseX, mouseY);
-    refresh();
+    if (e.clientX && e.clientY) {
+      mouseX = e.clientX - playgroundX;
+      mouseY = e.clientY - playgroundY;
+      myRect = new Rect('#FF0000', mouseX, mouseY);
+      refresh();
+    }
   });
 
 
