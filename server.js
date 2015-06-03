@@ -8,16 +8,13 @@ var app = http.createServer(function (req, res) {
   fileServer.serve(req, res);
 }).listen(2013);
 
+// convenience function to log server messages on the client
+var log = console.log.bind(console);
+
 var numberClients = {};
 var io = socketIO.listen(app);
 io.sockets.on('connection', function (socket){
 
-    // convenience function to log server messages on the client
-    function log(){
-		var array = [">>> Message from server:"];
-        array.push.apply(array, arguments);
-	    socket.emit('log', array);
-	}
 
 	socket.on('message', function (message, room) {
 		log('Client said:',  message);
