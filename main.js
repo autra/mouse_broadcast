@@ -7,7 +7,6 @@ var myId;
 (function() {
   'use strict';
   var room = prompt("Enter room name:");
-  var isInitiator;
 
   var socket = io.connect();
 
@@ -22,7 +21,6 @@ var myId;
 
   socket.on('created', function (room, socketId){
     console.log('You are the initiator!');
-    isInitiator = true;
     myId = socketId;
     console.log('Room ' + room + ' is empty');
     startPlayground();
