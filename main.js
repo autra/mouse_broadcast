@@ -93,7 +93,6 @@ var myId;
     };
 
     pc.setRemoteDescription(new RTCSessionDescription(offer));
-    pc.didSetRemote = true;
     pc.createAnswer(function(sessionDescription) {
       pc.setLocalDescription(sessionDescription);
       socket.emit('answer', peerId, sessionDescription);
