@@ -77,8 +77,9 @@ socket.on('offer', function(offer, peerId) {
         console.log("pc2 state: " + mychannel.state);
       }
       mychannel.onclose = function() {
-        console.log("pc2 onclose fired");
+        console.log("dc2 onclose fired");
       };
+      dataChannels[peerId] = mychannel;
     };
   pc.setRemoteDescription(new RTCSessionDescription(offer));
   pc.didSetRemote = true;
@@ -132,7 +133,7 @@ function connectToPeer(clientId) {
     dc.send("pc says this will likely be queued...");
   }
   dc.onclose = function() {
-    console.log("pc onclose fired");
+    console.log("dc onclose fired");
   };
   return pc;
 }
