@@ -10,6 +10,8 @@ var myId;
 
   var socket = io.connect();
 
+  var playground;
+
   if (room !== "") {
     console.log('Joining room ' + room);
     socket.emit('create or join', room);
@@ -23,13 +25,13 @@ var myId;
     console.log('You are the initiator!');
     myId = socketId;
     console.log('Room ' + room + ' is empty');
-    startPlayground();
+    playground = startPlayground();
   });
 
   socket.on('joined', function (room, socketId) {
     console.log('You\'ve joined room', room);
     myId = socketId;
-    startPlayground();
+    playground = startPlayground();
   });
 
   socket.on('join', function(room, clientId) {
@@ -51,6 +53,7 @@ var myId;
     console.log('Client %s has left us!', clientId);
     delete dataChannels[clientId];
     delete peers[clientId];
+    playground.deletePeer(clientId);
   });
 
   socket.on('log', function (array){
@@ -119,8 +122,8 @@ var myId;
                     peerId, evt.data, evt.data.size);
       } else {
         var data = JSON.parse(evt.data);
-        if (data.type === 'coordinate') {
-          console.log('Got coordinate %s, %s from %s', data.x, data.y, peerId);
+        if (data.type === 'coordinate' && playground) {
+          playground.updatePeerCoordinate(peerId, data.x, data.y);
         } else {
           console.log('%s said: %s', peerId, data.message);
         }
@@ -183,8 +186,8 @@ function startPlayground() {
   var playgroundHeight = rect.height;
   // mouse
   var mouseX, mouseY;
-  var myRect;
-  var otherRect = [];
+  var myRect = new Rect('#FF0000', 0, 0);
+  var otherRect = new Map();
 
   function clearPlayground(ctx) {
     ctx.clearRect(0, 0, playgroundWidth, playgroundHeight);
@@ -192,7 +195,7 @@ function startPlayground() {
 
   function drawPlayground(ctx) {
     myRect.draw(ctx);
-    for (var rect of otherRect) {
+    for (var rect of otherRect.values()) {
       rect.draw(ctx);
     }
   }
@@ -220,7 +223,8 @@ function startPlayground() {
       mouseX = e.clientX - playgroundX;
       mouseY = e.clientY - playgroundY;
       broadcastNewCoordinate(mouseX, mouseY);
-      myRect = new Rect('#FF0000', mouseX, mouseY);
+      myRect.x = mouseX;
+      myRect.y = mouseY;
       refresh();
     }
   });
@@ -237,6 +241,45 @@ function startPlayground() {
     }
   }
 
+  var getNewColor = function() {
+    var i = 0;
+    var colors = ['blue', 'green', 'yellow', 'orange'];
+    return function getNewColor() {
+      var color = colors[i++];
+      if (i === colors.length) {
+        i = 0;
+      }
+      console.log('color is ', color);
+      return color;
+    }
+  }();
 
+  function deletePeer(peerId) {
+    otherRect.delete(peerId);
+    // XXX: we might be more efficient here:
+    clearPlayground(ctx);
+    drawPlayground(ctx);
+  }
+
+  function updatePeerCoordinate(peerId, mouseX, mouseY) {
+    console.log('Got coordinate %s, %s from %s', mouseX, mouseY, peerId);
+    var rect;
+    if (otherRect.has(peerId)) {
+      rect = otherRect.get(peerId);
+      rect.x = mouseX;
+      rect.y = mouseY;
+    } else {
+      var color = getNewColor();
+      otherRect.set(peerId, new Rect(color, mouseX, mouseY));
+    }
+    // XXX: we might be able to be a bit more efficient here
+    clearPlayground(ctx);
+    drawPlayground(ctx);
+  }
+
+  return {
+    updatePeerCoordinate: updatePeerCoordinate,
+    deletePeer: deletePeer
+  };
 }
 
