@@ -1,0 +1,17 @@
+{
+  "name": "mouse_data_test",
+  "version": "1.0.0",
+  "description": "A test application that uses webRTC to send mouse position to other peers.",
+  "main": "server.js",
+  "dependencies": {
+    "node-static": "^0.7.7",
+    "socket.io": "^1.3.7"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Augustin Trancart <augustin.trancart@gmail.com>",
+  "license": "MIT"
+}
