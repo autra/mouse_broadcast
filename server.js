@@ -31,7 +31,7 @@ io.sockets.on('connection', function (socket){
 			socket.emit('created', room, socket.id);
             numberClients[room] = 1;
 
-		} else if (numClients === 1) {
+		} else if (numClients < 4) {
 			socket.join(room);
             socket.emit('joined', room, socket.id);
             console.log('clientid: ', socket.id);
